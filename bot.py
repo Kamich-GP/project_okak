@@ -15,6 +15,8 @@ def start(message):
     if database.check_user(user_id):
         bot.send_message(user_id, 'Добро пожаловать!',
                         reply_markup=telebot.types.ReplyKeyboardRemove())
+        bot.send_message(user_id, 'Выберите пункт меню:',
+                         reply_markup=buttons.main_menu(database.get_pr_buttons()))
     else:
         bot.send_message(user_id, 'Здравствуйте! Давайте начнем регистрацию!'
                                   'Напишите свое имя',
