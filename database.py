@@ -44,7 +44,7 @@ def get_exact_pr(pr_id):
 
 # Вывод цены товара по названию
 def get_price(pr_name):
-    return sql.execute('SELECT pr_price FROM products WHERE pr_name=?;', (pr_name,)).fetchone()
+    return sql.execute('SELECT pr_price FROM products WHERE pr_name=?;', (pr_name,)).fetchone()[0]
 
 ## Методы корзины ##
 # Добавление в корзину
@@ -77,3 +77,7 @@ def make_order(tg_id):
     # Фиксируем изменения
     connection.commit()
     return results
+
+# Вывод корзины
+def show_cart(tg_id):
+    return sql.execute('SELECT * FROM cart WHERE tg_id=?;', (tg_id,)).fetchall()
