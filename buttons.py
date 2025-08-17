@@ -71,3 +71,43 @@ def loc_button():
     # Добавляем кнопку в пространство
     kb.add(but1)
     return kb
+
+# Кнопки админ-меню
+def admin_buttons():
+    # Создаем пространство
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    # Создаем сами кнопки
+    but1 = types.KeyboardButton('Добавить продукт')
+    but2 = types.KeyboardButton('Удалить продукт')
+    but3 = types.KeyboardButton('Изменить продукт')
+    but4 = types.KeyboardButton('Назад в главное меню')
+    # Добавляем кнопки в пространство
+    kb.add(but1, but2, but3, but4)
+    return kb
+
+# Кнопки вывода продуктов в админ-панели
+def admin_pr_buttons(products):
+    # Создаем пространство
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    # Создаем сами кнопки
+    back = types.KeyboardButton('Назад')
+    all_products = [types.KeyboardButton(f'{i[1]}') for i in products]
+    # Добавляем кнопки в пространство
+    kb.add(*all_products)
+    kb.row(back)
+    return kb
+
+# Кнопки выбора атрибута
+def attr_buttons():
+    # Создаем пространство
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    # Создаем сами кнопки
+    name = types.InlineKeyboardButton(text='Название', callback_data='name')
+    des = types.InlineKeyboardButton(text='Описание', callback_data='des')
+    count = types.InlineKeyboardButton(text='Кол-во', callback_data='count')
+    price = types.InlineKeyboardButton(text='Цена', callback_data='price')
+    photo = types.InlineKeyboardButton(text='Фото', callback_data='photo')
+    # Добавляем кнопки в пространство
+    kb.add(name, des, count, price)
+    kb.row(photo)
+    return kb

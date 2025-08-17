@@ -8,8 +8,11 @@ import database
 bot = telebot.TeleBot('TOKEN')
 # Временные данные
 users = {}
+admins = {}
+admin_id = 'ID'
 
 
+## КЛИЕНТСКАЯ СТОРОНА ##
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -141,6 +144,92 @@ def get_loc(message, text):
         bot.send_message(user_id, 'Отправьте локацию по кнопке!')
         # Возвращение на этап получения локации
         bot.register_next_step_handler(message, get_loc, text)
+
+
+## АДМИНСКАЯ СТОРОНА ##
+# Обработчик команды /admin
+@bot.message_handler(commands=['admin'])
+def admin(message):
+    if message.from_user.id == admin_id:
+        bot.send_message(admin_id, 'Добро пожаловать в админ-панель!', reply_markup=buttons.admin_buttons())
+        # Переход на этап выбора
+        bot.register_next_step_handler(message, admin_choice)
+
+
+# Этап выбора
+def admin_choice(message):
+    if message.text == 'Добавить продукт':
+        bot.send_message(admin_id, 'Введите информацию о товаре в следующем порядке:\n'
+                                   'Название, описание, количество, цена, фото\n\n'
+                                   'Фотографии загружать на https://postimages.org/ и отправить в '
+                                   'виде прямой ссылки!',
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
+        # Переход на этап получения товара
+        bot.register_next_step_handler(message, get_pr)
+    elif message.text == 'Удалить продукт':
+        bot.send_message(admin_id, 'Выберите товар для удаления:',
+                         reply_markup=buttons.admin_pr_buttons(database.get_pr_buttons()))
+        act = 'del'
+        # Переход на этап удаления
+        bot.register_next_step_handler(message, get_act, act)
+    elif message.text == 'Изменить продукт':
+        bot.send_message(admin_id, 'Выберите товар для изменения:',
+                         reply_markup=buttons.admin_pr_buttons(database.get_pr_buttons()))
+        act = 'edit'
+        # Переход на этап изменения
+        bot.register_next_step_handler(message, get_act, act)
+    elif message.text == 'Назад в главное меню':
+        start(message)
+
+
+# Этап получения товара
+def get_pr(message):
+    pr_info = message.text.split(',') # 'Название, описание, количество, цена, фото' = ['Название', 'описание', 'количество', 'цена', 'фото']
+    database.add_pr(*pr_info)
+    bot.send_message(admin_id, 'Товар успешно добавлен в базу!',
+                     reply_markup=buttons.admin_buttons())
+    # Переход на этап выбора
+    bot.register_next_step_handler(message, admin_choice)
+
+
+# Этап удаления/изменения товара
+def get_act(message, act):
+    if message.text == 'Назад':
+        bot.send_message(admin_id, 'Добро пожаловать в админ-панель!',
+                         reply_markup=buttons.admin_buttons())
+        # Переход на этап выбора
+        bot.register_next_step_handler(message, admin_choice)
+    elif act == 'del':
+        pr_name = message.text
+        database.del_pr(pr_name)
+        bot.send_message(admin_id, 'Товар успешно удален!',
+                         reply_markup=buttons.admin_buttons())
+        # Переход на этап выбора
+        bot.register_next_step_handler(message, admin_choice)
+    elif act == 'edit':
+        pr_name = message.text
+        admins[admin_id] = pr_name
+        bot.send_message(admin_id, 'Что вы хотите изменить?',
+                         reply_markup=buttons.attr_buttons())
+
+
+# Этап изменения
+@bot.callback_query_handler(lambda call: call.data in ['name', 'des', 'count', 'price', 'photo'])
+def get_change(call):
+    bot.delete_message(chat_id=admin_id, message_id=call.message.message_id)
+    bot.send_message(admin_id, 'Введите новое значение')
+    attr = call.data
+    # Переход на этап изменения
+    bot.register_next_step_handler(call.message, get_pr_change, attr)
+
+
+def get_pr_change(message, attr):
+    new_value = message.text
+    database.change_pr(admins[admin_id], new_value, attr)
+    bot.send_message(admin_id, 'Товар успешно изменен!',
+                     reply_markup=buttons.admin_buttons())
+    # Переход на этап выбора
+    bot.register_next_step_handler(message, admin_choice)
 
 
 # Обработка выбора товара

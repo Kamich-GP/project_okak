@@ -81,3 +81,35 @@ def make_order(tg_id):
 # Вывод корзины
 def show_cart(tg_id):
     return sql.execute('SELECT * FROM cart WHERE tg_id=?;', (tg_id,)).fetchall()
+
+
+## Методы администратора ##
+# Добавление товара в БД
+def add_pr(pr_name, pr_des, pr_count, pr_price, pr_photo):
+    sql.execute('INSERT INTO products (pr_name, pr_des, pr_count, pr_price, pr_photo) VALUES (?, ?, ?, ?, ?);',
+                (pr_name, pr_des, pr_count, pr_price, pr_photo))
+    # Фиксируем изменения
+    connection.commit()
+
+
+# Удаление товара по названию
+def del_pr(pr_name):
+    sql.execute('DELETE FROM products WHERE pr_name=?;', (pr_name,))
+    # Фиксируем изменения
+    connection.commit()
+
+
+# Изменение аттрибута
+def change_pr(keyword, new_value, attr=''):
+    if attr == 'name':
+        sql.execute('UPDATE products SET pr_name=? WHERE pr_name=?;', (new_value, keyword))
+    elif attr == 'des':
+        sql.execute('UPDATE products SET pr_des=? WHERE pr_name=?;', (new_value, keyword))
+    elif attr == 'count':
+        sql.execute('UPDATE products SET pr_count=? WHERE pr_name=?;', (new_value, keyword))
+    elif attr == 'price':
+        sql.execute('UPDATE products SET pr_price=? WHERE pr_name=?;', (new_value, keyword))
+    elif attr == 'photo':
+        sql.execute('UPDATE products SET pr_photo=? WHERE pr_name=?;', (new_value, keyword))
+    # Фиксируем изменения
+    connection.commit()
